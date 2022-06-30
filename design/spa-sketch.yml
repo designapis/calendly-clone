@@ -1,0 +1,81 @@
+spa: 1.0.0
+routes:
+  /:
+    title: Home
+    description: Includes the EditEvent page
+    components:
+      - $ref: '#/shared/components/Topbar'
+      - name: EditEvent
+        form:
+          event: {}
+        components:
+          - name: TimeDropdown
+            description: A dropdown of times constrained to a duration (eg: 30min or 15min).
+        operations:
+          - $ref: '#/shared/operations/getEventByID'
+            bindings: {id: id}
+          - $ref: '#/shared/operations/updateEvent'
+            bindings: {id: 0, body: 'event'}
+        links:
+        - '/events/{id}'
+
+
+  /events/{id}:
+    title: Reserve slot
+    description: Reserve a slot in an event
+    components:
+      - $ref: '#/shared/components/Topbar'
+      - name: ReserveEvent
+        form:
+          reservation: {}
+        operations:
+          - $ref: '#/shared/operations/getEventByID'
+            bindings: {id: 0}
+          - $ref: '#/shared/operations/reserveEvent'
+            bindings: {id: 0, body: 'reservation'}
+        links:
+          - '/reservations/{id}'
+
+
+  /reservations/{id}:
+    title: View reservation
+    description: View the reservation details
+    components:
+      - $ref: '#/shared/components/Topbar'
+      - name: ViewReservation
+        operations:
+          - $ref: '#/shared/operations/getReservationByID'
+            bindings: {id: id}
+        links:
+          - '/events/{id}'
+
+shared:
+  components:
+    Topbar:
+      name: Topbar
+      description: Banner at the top
+      links:
+        - '/'
+
+  operations:
+    getReservationByID:
+      source: './openapi.yml'
+      path: '/reservations/{id}'
+      method: get
+    getEventByID:
+      source: './openapi.yml'
+      path: '/events/{id}'
+      method: get
+    updateEvent:
+      source: './openapi.yml'
+      path: '/events/{id}'
+      method: put
+    getEvents:
+      source: './openapi.yml'
+      path: '/events'
+      method: get
+    reserveEvent:
+      source: './openapi.yml'
+      path: '/reservations'
+      method: post
+      

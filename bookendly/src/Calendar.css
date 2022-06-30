@@ -80,9 +80,9 @@
 /* .react-calendar__month-view__days__day--weekend { */
 /*   color: theme('colors.gray.500'); */
 /* } */
-/* .react-calendar__month-view__days__day--neighboringMonth { */
-/*   color: theme('colors.gray.400'); */
-/* } */
+.react-calendar__month-view__days__day--neighboringMonth {
+  color: theme('colors.blue.400');
+}
 .react-calendar__year-view .react-calendar__tile,
 .react-calendar__decade-view .react-calendar__tile,
 .react-calendar__century-view .react-calendar__tile {
