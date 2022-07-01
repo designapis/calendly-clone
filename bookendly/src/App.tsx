@@ -3,15 +3,15 @@ import Calendar from './Calendar'
 import Times from './Times'
 import EditEvent from './EditEvent'
 import {useQuery} from 'react-query'
-import {EventsApi, Event} from './generated-bookendly-api'
+import {Event, EventsApi} from './generated-api'
 
 const eventsApi = new EventsApi({basePath: 'https://httpbin.org/anything'})
 
 function App() {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-  const {data, isLoading, error, isError} = useQuery<Event>('event', () => {
-    return eventsApi.getEventById(0)
+  const {data, isLoading, error, isError} = useQuery<Event>('events', async () => {
+    const {data} = await eventsApi.getEventById(0)
+    return data
   })
 
   const [startDate, changeStartDate] = useState<Date>()
