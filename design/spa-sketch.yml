@@ -1,5 +1,28 @@
 spa: 1.0.0
-routes:
+workflows:
+  - name: Create event
+    steps:
+      - page: '/'
+        component: 'EditEvent'
+        description: Update event details for event 0
+        actions:
+          - FillForm
+          - Submit
+          - ClickLink
+      - page: '/events/{id}'
+        description: View the booking page to ensure it looks good.
+        actions:
+          - external: Share link with possible attendees
+
+  - name: Reserve event slot
+    steps:
+      - page: '/events/{id}'
+        description: Reserve a slot
+        action: Reserve
+      - page: '/reservations/{id}'
+        action: DownloadCalendarInvite
+        description: Download calendar invite for the slot
+pages:
   /:
     title: Home
     description: Includes the EditEvent page

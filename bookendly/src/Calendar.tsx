@@ -2,6 +2,7 @@ import { useState } from 'react'
 import ReactCalendar, {CalendarProps} from 'react-calendar'
 import './Calendar.css'
 
+const now = new Date()
 enum DayOfWeek {
   sun = 0,
   mon,
@@ -21,7 +22,7 @@ export default function Calendar({
 }) {
 
   const tileDisabled = ({date}: {date: Date}): boolean => {
-    return date.getDay() === DayOfWeek.tue
+    return date < now || date.getDay() == DayOfWeek.tue
   }
 
   return (
