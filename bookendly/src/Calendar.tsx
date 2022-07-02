@@ -30,14 +30,6 @@ export default function Calendar({
       <ReactCalendar onChange={changeStartDate} value={startDate}
 	tileDisabled={tileDisabled}
       />
-
-      <div className="mt-4" >
-	{startDate ? (
-	  <h3 className="font-red-600 font-bold">
-	    Date selected: {startDate.toLocaleDateString()}
-	  </h3>
-	) : null }
-      </div>
     </div>
   );
 }

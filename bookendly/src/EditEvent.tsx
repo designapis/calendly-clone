@@ -32,6 +32,7 @@ export default function EditEvent() {
 	</div>
 
       </section>
+
     </div>
   )
 }
