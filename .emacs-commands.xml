@@ -4,6 +4,7 @@
     <cmd>
       nix-shell --run "cd bookendly &amp;&amp; yarn run start"
     </cmd>
+
   </command>
 
 </emacs>
