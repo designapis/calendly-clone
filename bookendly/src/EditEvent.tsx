@@ -1,13 +1,14 @@
 import {useState} from 'react'
 import Dropdown from './Dropdown'
 import {PlusIcon, TrashIcon} from '@heroicons/react/solid'
-import {format} from 'date-fns'
 import {produce} from 'immer'
+import {minuteSteps, formatMinutes} from './utils'
+import {Button} from './UI'
 
 interface DayTimeSlot {
   // dayOfWeek: number; // 0 = Sun, 6 = Sat
-  startTime: Date;
-  endTime: Date;
+  startTime: number; // Minutes since midnight. 0 -> 00:00 , 1 -> 00:01, 60 -> 01:00, ...
+  endTime: number;
 }
 
 interface DayTimeSlots {
@@ -21,8 +22,8 @@ export default function EditEvent() {
   const [eventName, setEventName] = useState('Meeting for coffee')
   const [eventLength, setEventLength] = useState(15)
   const [dayTimeSlots, setDayTimeSlots] = useState<DayTimeSlots>({
-    0: [{startTime: new Date, endTime: new Date}, {startTime: new Date, endTime: new Date}],
-    3: [{startTime: new Date, endTime: new Date}],
+    0: [{startTime: 20*15, endTime: 30*15}, {startTime: 35*15, endTime: 40*15}],
+    3: [{startTime: 20*15, endTime: 40*15}],
   })
 
   const onCheckDay = (i: number) => {
@@ -31,7 +32,7 @@ export default function EditEvent() {
       if(newState[i]) {
 	delete newState[i]
       } else {
-	newState[i] = [...(newState[i] || []), {startTime: new Date, endTime: new Date}]
+	newState[i] = [...(newState[i] || []), {startTime: 0, endTime: 0}]
       }
       return newState
     })
@@ -40,7 +41,7 @@ export default function EditEvent() {
   const onAddSlot = (i: number) => {
     setDayTimeSlots(s => {
       const newState = {...s}
-      newState[i] = [...(newState[i] || []), {startTime: new Date, endTime: new Date}]
+      newState[i] = [...(newState[i] || []), {startTime: 0, endTime: 0}]
       return newState
     })
   }
@@ -85,14 +86,21 @@ export default function EditEvent() {
 	    <DaySlot dayIndex={i} onUpdateTimeSlot={onUpdateTimeSlot} onDeleteSlot={onDeleteSlot} onAddSlot={onAddSlot} onCheckDay={onCheckDay} slots={dayTimeSlots[i] || []} key={i}/>
 	  ))}
 
-
-	  <pre>
-	    {JSON.stringify(dayTimeSlots,null,2)}
-	  </pre>
-
 	</div>
 
       </section>
+
+      <div className="mt-3" >
+	<Button>Update Event</Button>
+      </div>
+
+      <pre>
+	{JSON.stringify({
+	  dayTimeSlots,
+	  eventName,
+	  eventLength,
+	}, null, 2)}
+      </pre>
 
     </div>
   )
@@ -105,13 +113,13 @@ function DaySlot({dayIndex, slots, onCheckDay, onAddSlot, onDeleteSlot, onUpdate
     <div>
       <input type="checkbox" checked={hasSlots} onChange={() => onCheckDay(dayIndex)}/>
       {daysOfWeek[dayIndex] || 'Unknown'} 
+      <button><PlusIcon onClick={() => onAddSlot(dayIndex)} className="text-gray-600 hover:text-gray-500 w-5 h-5" /></button>
       {slots.map((slot, slotIndex) => {
 	const {endTime, startTime} = slot
 	return (
 	  <div key={slotIndex}>
 	    <TimeDropdown {...{startTime, endTime, setTime: (s,e) => onUpdateTimeSlot(dayIndex, slotIndex, {startTime: s, endTime: e})}} />
 	    <button><TrashIcon onClick={() => onDeleteSlot(dayIndex, slotIndex)} className="text-gray-600 hover:text-gray-500 w-5 h-5" /></button>
-	    <button><PlusIcon onClick={() => onAddSlot(dayIndex)} className="text-gray-600 hover:text-gray-500 w-5 h-5" /></button>
 	  </div>
 	)
       })}
@@ -123,32 +131,22 @@ function DaySlot({dayIndex, slots, onCheckDay, onAddSlot, onDeleteSlot, onUpdate
   
 }
 
-// from https://stackoverflow.com/questions/36125038/generate-array-of-times-as-strings-for-every-x-minutes-in-javascript#36126706
-function listOfTimesForStep(step: number): Date[] {
-  const dt = new Date(1970, 0, 1);
-  const rc: Date[] = [];
-  while (dt.getDate() === 1) {
-    rc.push(new Date(dt));
-    dt.setMinutes(dt.getMinutes() + step);
-  }
-  return rc;
-}
-const every15min = listOfTimesForStep(15)
+const every15min = minuteSteps(15)
 
 function TimeDropdown({
-  startTime = new Date,
-  endTime = new Date,
+  startTime = 0,
+  endTime = 0,
   setTime,
 }: {
-  startTime: Date;
-  endTime: Date;
-  setTime: (startTime: Date, endTime: Date) => void;
+  startTime: number;
+  endTime: number;
+  setTime: (startTime: number, endTime: number) => void;
 }) {
   return (
     <div className="inline-block" >
-      <Dropdown values={every15min} render={(d) => format(d, 'HH:mm aaa')} value={startTime} onChange={(startTime: Date) => setTime(startTime, endTime)}/>
+      <Dropdown values={every15min} render={(minutes) => formatMinutes(minutes)} value={startTime} onChange={(startTime: number) => setTime(startTime, endTime)}/>
       {' to '}
-      <Dropdown values={every15min} render={(d) => format(d, 'HH:mm aaa')} value={endTime} onChange={(endTime: Date) => setTime(startTime, endTime)}/>
+      <Dropdown values={every15min} render={(minutes) => formatMinutes(minutes)} value={endTime} onChange={(endTime: number) => setTime(startTime, endTime)}/>
     </div>
   
   )

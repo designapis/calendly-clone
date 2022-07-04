@@ -17,7 +17,7 @@ export default function Calendar({
   startDate,
   changeStartDate
 }: {
-  startDate?: Date;
+  startDate?: Date|null;
   changeStartDate: (d: Date) => void;
 }) {
 

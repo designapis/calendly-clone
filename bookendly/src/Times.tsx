@@ -1,21 +1,26 @@
-export default function Times({times, startDate}: {
-  times: string[];
-  startDate: Date;
+import {useState} from 'react'
+import {Button} from './UI'
+import {formatMinutes} from './utils'
+export default function Times({times, setTime}: {
+  times: number[];
+  setTime: (minutes: number) => void;
 }) {
+  const [selected, setSelected] = useState<number|null>()
   return (
     <div>
       <section>
-	<h3 className="text-gray-600" >Choose a time for {startDate.toDateString()}</h3>
-	<div>
+	<h3 className="text-gray-600" >Choose a time</h3>
+	<div className="flex flex-col">
 	  {times.map(v => (
-	    <div className="flex flex-col ">
-	      <button className="mt-2 bg-blue-600 rounded-md hover:bg-blue-500 px-1.5 py-2 text-white" >{v}</button>
+	    <div className="flex flex-1 space-x-2 mt-2" >
+	      <Button onClick={() => setSelected(v)} disabled={selected === v} className="flex-1" >{formatMinutes(v)}</Button>
+	      {selected === v ? (
+		<Button onClick={() => setTime(v)} className="flex-1" >Confirm</Button>
+	      ) : null}
 	    </div>
 	  ))}
 	</div>
       </section>
     </div>
-    
   )
-  
 }
