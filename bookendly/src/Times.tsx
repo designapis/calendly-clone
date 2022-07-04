@@ -10,7 +10,7 @@ export default function Times({times, setTime}: {
     <div>
       <section>
 	<h3 className="text-gray-600" >Choose a time</h3>
-	<div className="flex flex-col">
+	<div className="flex flex-col max-h-[600px] overflow-y-auto">
 	  {times.map(v => (
 	    <div className="flex flex-1 space-x-2 mt-2" >
 	      <Button onClick={() => setSelected(v)} disabled={selected === v} className="flex-1" >{formatMinutes(v)}</Button>

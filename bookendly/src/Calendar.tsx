@@ -15,14 +15,16 @@ enum DayOfWeek {
 
 export default function Calendar({
   startDate,
-  changeStartDate
+  changeStartDate,
+  dayEnabled
 }: {
   startDate?: Date|null;
   changeStartDate: (d: Date) => void;
+  dayEnabled: (date: Date) => boolean;
 }) {
 
   const tileDisabled = ({date}: {date: Date}): boolean => {
-    return date < now || date.getDay() == DayOfWeek.tue
+    return date < now || !dayEnabled(date)
   }
 
   return (
