@@ -2,13 +2,14 @@ import {useState} from 'react'
 import Dropdown from './Dropdown'
 import {PlusIcon, TrashIcon} from '@heroicons/react/solid'
 import {produce} from 'immer'
-import {minuteSteps, formatMinutes} from './utils'
+import {minuteSteps, formatTime} from './utils'
 import {Button} from './UI'
+import Time from './Time'
 
 interface DayTimeSlot {
   // dayOfWeek: number; // 0 = Sun, 6 = Sat
-  startTime: number; // Minutes since midnight. 0 -> 00:00 , 1 -> 00:01, 60 -> 01:00, ...
-  endTime: number;
+  startTime: string; // eg: 18:00
+  endTime: string;
 }
 
 interface DayTimeSlots {
@@ -22,8 +23,8 @@ export default function EditEvent() {
   const [eventName, setEventName] = useState('Meeting for coffee')
   const [eventLength, setEventLength] = useState(15)
   const [dayTimeSlots, setDayTimeSlots] = useState<DayTimeSlots>({
-    0: [{startTime: 20*15, endTime: 30*15}, {startTime: 35*15, endTime: 40*15}],
-    3: [{startTime: 20*15, endTime: 40*15}],
+    0: [{startTime: '09:00', endTime: '10:00'}, {startTime: '18:00', endTime: '19:30'}],
+    3: [{startTime: '09:00', endTime: '11:00'}],
   })
 
   const onCheckDay = (i: number) => {
@@ -32,7 +33,7 @@ export default function EditEvent() {
       if(newState[i]) {
 	delete newState[i]
       } else {
-	newState[i] = [...(newState[i] || []), {startTime: 0, endTime: 0}]
+	newState[i] = [...(newState[i] || []), {startTime: '12:00', endTime: '12:00'}]
       }
       return newState
     })
@@ -41,7 +42,7 @@ export default function EditEvent() {
   const onAddSlot = (i: number) => {
     setDayTimeSlots(s => {
       const newState = {...s}
-      newState[i] = [...(newState[i] || []), {startTime: 0, endTime: 0}]
+      newState[i] = [...(newState[i] || []), {startTime: '12:00', endTime: '12:00'}]
       return newState
     })
   }
@@ -107,8 +108,8 @@ export default function EditEvent() {
 }
 
 function DaySlot({dayIndex, slots, onCheckDay, onAddSlot, onDeleteSlot, onUpdateTimeSlot}: {dayIndex: number, slots: DayTimeSlot[], onAddSlot: (dayIndex: number) => void; onCheckDay: (dayIndex: number) => void; onDeleteSlot: (dayIndex: number, slotIndex: number) => void; onUpdateTimeSlot: (dayIndex: number, slotIndex: number, time: DayTimeSlot) => void;}) {
-
   const hasSlots = Boolean(slots.length)
+
   return (
     <div>
       <input type="checkbox" checked={hasSlots} onChange={() => onCheckDay(dayIndex)}/>
@@ -116,6 +117,7 @@ function DaySlot({dayIndex, slots, onCheckDay, onAddSlot, onDeleteSlot, onUpdate
       <button><PlusIcon onClick={() => onAddSlot(dayIndex)} className="text-gray-600 hover:text-gray-500 w-5 h-5" /></button>
       {slots.map((slot, slotIndex) => {
 	const {endTime, startTime} = slot
+
 	return (
 	  <div key={slotIndex}>
 	    <TimeDropdown {...{startTime, endTime, setTime: (s,e) => onUpdateTimeSlot(dayIndex, slotIndex, {startTime: s, endTime: e})}} />
@@ -131,22 +133,22 @@ function DaySlot({dayIndex, slots, onCheckDay, onAddSlot, onDeleteSlot, onUpdate
   
 }
 
-const every15min = minuteSteps(15)
+const every15min = minuteSteps(15).map(m => new Time(m).toString())
 
 function TimeDropdown({
-  startTime = 0,
-  endTime = 0,
+  startTime = '12:00',
+  endTime = '12:00',
   setTime,
 }: {
-  startTime: number;
-  endTime: number;
-  setTime: (startTime: number, endTime: number) => void;
+  startTime: string;
+  endTime: string;
+  setTime: (startTime: string, endTime: string) => void;
 }) {
   return (
     <div className="inline-block" >
-      <Dropdown values={every15min} render={(minutes) => formatMinutes(minutes)} value={startTime} onChange={(startTime: number) => setTime(startTime, endTime)}/>
+      <Dropdown values={every15min} render={(time) => formatTime(time)} value={startTime} onChange={(startTime) => setTime(startTime, endTime)}/>
       {' to '}
-      <Dropdown values={every15min} render={(minutes) => formatMinutes(minutes)} value={endTime} onChange={(endTime: number) => setTime(startTime, endTime)}/>
+      <Dropdown values={every15min} render={(time) => formatTime(time)} value={endTime} onChange={(endTime) => setTime(startTime, endTime)}/>
     </div>
   
   )

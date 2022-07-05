@@ -1,3 +1,4 @@
+import Time from './Time'
 
 export function formatMinutes(minSinceMidnight: number, includeAm: boolean = true) {
   let hours = Math.floor(minSinceMidnight/60)
@@ -8,8 +9,13 @@ export function formatMinutes(minSinceMidnight: number, includeAm: boolean = tru
 
 export function minuteSteps(step: number) {
   let steps = []
-  for(let i = 0; i <= (24 * 60/step); i++) {
+  for(let i = 0; i < (24 * 60/step); i++) {
     steps.push(i * step)
   }
   return steps
+}
+
+export function formatTime(time: string | number) {
+  const t = new Time(time)
+  return t.toString() + (t.isAm ? ' am' : ' pm')
 }

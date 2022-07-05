@@ -2,8 +2,9 @@ import {useState} from 'react'
 import Times from './Times'
 import Calendar from './Calendar'
 import {Button, Input} from './UI'
-import {formatMinutes} from './utils'
+import {formatTime} from './utils'
 import { format, parse } from 'date-fns'
+import Time from './Time'
 import {Event} from './generated-og'
 import {useQuery} from 'react-query'
 
@@ -34,7 +35,7 @@ const daysOfWeek = [
   'sat'
 ]
 
-function timesForDate(date: Date, event: Event): number[] {
+function timesForDate(date: Date, event: Event): Time[] {
 
   const daySlots = event.timeRanges.filter(r => {
     return r.dayOfWeek && daysOfWeek.indexOf(r.dayOfWeek) === date.getDay()
@@ -56,12 +57,12 @@ function timesForDate(date: Date, event: Event): number[] {
     }
   })
 
-  return Array.from(slots)
+  return Array.from(slots).map(s => new Time(s))
 }
 
 export default function ReserveEvent() {
   const [startDate, setStartDate] = useState<Date|null>(null)
-  const [startTime, setStartTime] = useState<number|null>(null) // minutes since midnight
+  const [startTime, setStartTime] = useState<Time|null>(null) // minutes since midnight
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
 
@@ -82,7 +83,6 @@ export default function ReserveEvent() {
 
   const {timeRanges, slotDuration, title} = event
 
-  const times = [0, 15, 30, 60]
   const duration = slotDuration  
   const eventTitle = title
 
@@ -111,7 +111,7 @@ export default function ReserveEvent() {
 
 	  <div>
 	    <h2 className="text-xl" > {eventTitle} ({duration}min)</h2>
-	    <h3 className="text-gray-600" >Confirm your slot for {formatMinutes(startTime)} to {formatMinutes(startTime + duration)} {format(startDate, 'eeee, eo MMM yyyy')} </h3>
+	    <h3 className="text-gray-600" >Confirm your slot for {startTime.pretty} to {new Time(startTime.minutes + duration).pretty} {format(startDate, 'eeee, do MMM yyyy')} </h3>
 	    <form onSubmit={(e) => e.preventDefault()}>
 	      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email"/>
 	      <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full name"/>
@@ -127,7 +127,7 @@ export default function ReserveEvent() {
       <pre>
 	{JSON.stringify({
 	  startDate,
-	  startTime,
+	  startTime: startTime+'',
 	  email,
 	  fullName,
 	}, null, 2)}
