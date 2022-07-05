@@ -1,5 +1,5 @@
 import {ButtonHTMLAttributes, HTMLProps } from 'react'
-import {Link, LinkProps} from 'react-router-dom'
+import {Link as RLink, LinkProps} from 'react-router-dom'
 export type COLORS = {
   red: string;
   blue: string;
@@ -14,10 +14,17 @@ const BUTTON_COLORS: COLORS = {
   red: 'bg-red-500 hover:bg-red-600 focus:bg-red-600 active:bg-red-700',
 }
 
-export function A({className, ...rest}: LinkProps) {
+export function Link({className, ...rest}: LinkProps) {
   let c = `${className} text-blue-800 underline hover:no-underline`
   return (
-    <Link className={c} {...rest}/>
+    <RLink className={c} {...rest}/>
+  )
+}
+
+export function A({className, ...rest}: React.ComponentPropsWithoutRef<"a">) {
+  let c = `${className} text-blue-800 underline hover:no-underline`
+  return (
+    <a className={c} {...rest}/>
   )
 }
 
