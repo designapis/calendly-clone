@@ -2,23 +2,24 @@ import {useState} from 'react'
 import Times from './Times'
 import Calendar from './Calendar'
 import {Button, Input} from './UI'
-import {formatTime} from './utils'
 import { format, parse } from 'date-fns'
 import Time from './Time'
 import {Event} from './generated-og'
 import {useQuery} from 'react-query'
+import {EventsApi, Configuration} from './generated-og'
+const eventsApi = new EventsApi(new Configuration({basePath: '/api'}))
 
-const exampleEvent: Event = {
-  id: 0,
-  eventTz: 'Africa/Johannesburg',
-  slotDuration: 30,
-  title: 'Coffee time!',
-  timeRanges: [
-    {dayOfWeek: 'mon', startTime: '09:00', endTime: '12:00'},
-    {dayOfWeek: 'mon', startTime: '18:00', endTime: '20:00'},
-    {dayOfWeek: 'tue', startTime: '09:00', endTime: '12:00'},
-  ]
-}
+// const exampleEvent: Event = {
+//   id: 0,
+//   eventTz: 'Africa/Johannesburg',
+//   slotDuration: 30,
+//   title: 'Coffee time!',
+//   timeRanges: [
+//     {dayOfWeek: 'mon', startTime: '09:00', endTime: '12:00'},
+//     {dayOfWeek: 'mon', startTime: '18:00', endTime: '20:00'},
+//     {dayOfWeek: 'tue', startTime: '09:00', endTime: '12:00'},
+//   ]
+// }
 
 function toMinutesSinceMidnight(time: string): number {
   const [hours, minutes] = time.split(':')
@@ -45,19 +46,15 @@ function timesForDate(date: Date, event: Event): Time[] {
     return []
   }
 
-  let slots = new Set<number>()
+  let slots: Time[] = []
 
   daySlots.forEach(daySlot => {
-    const startMin = toMinutesSinceMidnight(daySlot.startTime || '0:0')
-    const endMin = toMinutesSinceMidnight(daySlot.endTime || '0:0')
-
-    const numSlots = Math.floor((endMin - startMin) / event.slotDuration)
-    for(let i = 0; i < numSlots; i++) {
-      slots.add(startMin + (i * event.slotDuration))
-    }
+    const startTime = new Time(daySlot.startTime || '0:0')
+    const endTime = new Time(daySlot.endTime || '0:0')
+    slots = [...slots, ...startTime.stepsUntil(endTime, event.slotDuration)]
   })
 
-  return Array.from(slots).map(s => new Time(s))
+  return slots
 }
 
 export default function ReserveEvent() {
@@ -66,10 +63,10 @@ export default function ReserveEvent() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
 
-  const {isLoading, data: event} = useQuery<Event>('reservation', async () => {
-    return new Promise<Event>((done) => setTimeout(() => {
-      done(exampleEvent)
-    }, 3000))
+  const {isLoading, data: event} = useQuery<Event>('event', async () => {
+    const res = await eventsApi.getEventById(0)
+    const {data} = res
+    return data
   })
 
   if(isLoading || !event) {
@@ -95,6 +92,8 @@ export default function ReserveEvent() {
   return (
     <div>
       <div className="mt-4" >
+
+	<h2>{eventTitle}</h2>
 
 	{!selectedDateTime ? (
 	  <div className="flex" >

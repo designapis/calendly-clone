@@ -7,4 +7,12 @@
 
   </command>
 
+  <command title="Start Server" dir="." >
+
+    <cmd>
+      nix-shell --run "cd attempt0 &amp;&amp; yarn run start"
+    </cmd>
+
+  </command>
+
 </emacs>

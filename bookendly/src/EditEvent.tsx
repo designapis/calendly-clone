@@ -5,6 +5,9 @@ import {produce} from 'immer'
 import {minuteSteps, formatTime} from './utils'
 import {Button} from './UI'
 import Time from './Time'
+import {EventsApi, Configuration} from './generated-og'
+import {useMutation, useQueryClient} from 'react-query'
+const eventsApi = new EventsApi(new Configuration({basePath: '/api'}))
 
 interface DayTimeSlot {
   // dayOfWeek: number; // 0 = Sun, 6 = Sat
@@ -16,16 +19,53 @@ interface DayTimeSlots {
   [key: number]: DayTimeSlot[];
 }
 
+type Durations = 15 | 30 | 60;
+
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const enumOfDaysOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export default function EditEvent() {
+  const queryClient = useQueryClient()
+
   const [eventName, setEventName] = useState('Meeting for coffee')
-  const [eventLength, setEventLength] = useState(15)
+  const [eventLength, setEventLength] = useState<Durations>(15)
   const [dayTimeSlots, setDayTimeSlots] = useState<DayTimeSlots>({
     0: [{startTime: '09:00', endTime: '10:00'}, {startTime: '18:00', endTime: '19:30'}],
     3: [{startTime: '09:00', endTime: '11:00'}],
   })
+
+  const {mutate: updateEvent, isLoading: isUpdatingEvent } = useMutation(() => {
+
+    const timeRanges = Object.entries(dayTimeSlots).flatMap(([dayIndex, slots]) => {
+      const day = enumOfDaysOfWeek[+dayIndex]
+      if(!day) return
+      return slots.map((slot: DayTimeSlot) => {
+	return {
+	  dayOfWeek: day,
+	  startTime: new Time(slot.startTime).toString(),
+	  endTime: new Time(slot.endTime).toString(),
+	}
+      })
+    })
+      // eventName,
+      // eventLength,
+
+    return eventsApi.updateEvent(0, {
+
+      id: 0,
+      eventTz: timezone,
+      title: eventName,
+      slotDuration: eventLength,
+      timeRanges,
+    })
+  }, {
+    
+    onSuccess() {
+      queryClient.invalidateQueries(['event'])
+    }
+  })
+
 
   const onCheckDay = (i: number) => {
     setDayTimeSlots(s => {
@@ -92,7 +132,7 @@ export default function EditEvent() {
       </section>
 
       <div className="mt-3" >
-	<Button>Update Event</Button>
+	<Button disabled={isUpdatingEvent} onClick={() => updateEvent()}>Update Event</Button>
       </div>
 
       <pre>
@@ -133,7 +173,7 @@ function DaySlot({dayIndex, slots, onCheckDay, onAddSlot, onDeleteSlot, onUpdate
   
 }
 
-const every15min = minuteSteps(15).map(m => new Time(m).toString())
+const every15min = minuteSteps(15)
 
 function TimeDropdown({
   startTime = '12:00',
@@ -144,11 +184,15 @@ function TimeDropdown({
   endTime: string;
   setTime: (startTime: string, endTime: string) => void;
 }) {
+
+  const startTimeMinutes = new Time(startTime).minutes
+  const endValues = every15min.filter(a => a.minutes > startTimeMinutes)
+
   return (
     <div className="inline-block" >
-      <Dropdown values={every15min} render={(time) => formatTime(time)} value={startTime} onChange={(startTime) => setTime(startTime, endTime)}/>
+      <Dropdown values={every15min.map(a => a.pretty)} render={formatTime} value={startTime} onChange={(startTime) => setTime(startTime, endTime)}/>
       {' to '}
-      <Dropdown values={every15min} render={(time) => formatTime(time)} value={endTime} onChange={(endTime) => setTime(startTime, endTime)}/>
+      <Dropdown values={endValues.map(a => a.pretty)} render={formatTime} value={endTime} onChange={(endTime) => setTime(startTime, endTime)}/>
     </div>
   
   )

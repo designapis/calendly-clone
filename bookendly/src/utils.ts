@@ -7,10 +7,10 @@ export function formatMinutes(minSinceMidnight: number, includeAm: boolean = tru
   return hours.toString().padStart(2, '0') + ':' + minutes.toString().padStart(2, '0') + (includeAm ? ' ' + amPm : '')
 }
 
-export function minuteSteps(step: number) {
-  let steps = []
+export function minuteSteps(step: number): Time[] {
+  let steps: Time[] = []
   for(let i = 0; i < (24 * 60/step); i++) {
-    steps.push(i * step)
+    steps.push(new Time(i * step))
   }
   return steps
 }
