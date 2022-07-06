@@ -4,7 +4,7 @@ info:
   description: A clone of the popular calendly.com.
   version: 1.0.0
 servers:
-- url: /
+- url: /api
 tags:
 - name: events
   description: Events are created by folks who are open to meeting with others
@@ -170,7 +170,7 @@ components:
       properties:
         id:
           type: integer
-          readOnly: true
+          # # readOnly: true
         eventId:
           type: integer
         email:
@@ -221,7 +221,7 @@ components:
       properties:
         id:
           type: integer
-          readOnly: true
+          # readOnly: true
         title:
           type: string
           example: Catch up call
