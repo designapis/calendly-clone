@@ -1,0 +1,228 @@
+openapi: 3.0.3
+info:
+  title: Calendly Clone
+  version: 1.0.0
+  description: A clone of the popular calendly.com.
+  
+  
+tags:
+- name: events
+  description: Events are created by folks who are open to meeting with others
+- name: reservations
+  description: Reservations are made by people who want to participate in an event, at a given date and time.
+paths:
+  /events:
+    get:
+      summary: Get all events
+      description: Get all event details
+      operationId: getEvents
+      responses:
+        '200':
+          description: The events
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+          
+      tags:
+        - events
+  /events/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get event
+      description: Get event details
+      operationId: getEventById
+      responses:
+        '200':
+          description: The event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+          
+      tags:
+        - events
+    put:
+      summary: 'Update the event'
+      description: Update the single event in our system.
+      operationId: updateEvent
+      requestBody:
+        description: Update the event
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+      responses:
+        '200':
+          description: The event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+      tags:
+        - events
+  /reservations:
+    get:
+      summary: Get all reservations
+      description: Get all reservations
+      operationId: getReservations
+      parameters:
+        - name: eventId
+          description: Filter reservations by event
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of reservations
+          content:
+            application/json:
+              schema:
+                  type: object
+                  required: [items]
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Reservation'
+      tags:
+        - reservations
+    post:
+      summary: Reserve a given event and time.
+      description: Reserve a given event
+      operationId: reserveEvent
+      requestBody:
+        description: The reservation.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reservation'
+      responses:
+        '201':
+          description: Reservation made successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '409':
+          description: The reservation cannot be made as the event, startTime and/or endTime are unavailable.
+        default:
+          description: Maleformed request
+      tags:
+        - reservations
+        - events
+  /reservations/{id}:
+    get:
+      tags:
+      - reservations
+      summary: Get the details of this reservation by ID.
+      parameters: 
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          example: abc
+      responses:
+        '200':
+          description: The details of the reservation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+  
+components:
+  schemas:
+    Reservation:
+      type: object
+      required: [id, eventId, email, name, localTz, startDateTime, endDateTime]
+      properties:
+        id: 
+          type: integer
+          readOnly: true
+        eventId:
+          type: integer
+        email: 
+          type: string
+          format: email
+          example: bob@example.com
+        name:
+          type: string
+          example: Bob Example
+        localTz:
+          $ref: '#/components/schemas/Timezone'
+
+        startDateTime:
+          type: string
+          format: datetime
+          example: '2022-01-01T00:00:000Z'
+        endDateTime:
+          type: string
+          format: datetime
+          example: '2022-01-01T00:01:000Z'
+
+
+    DayOfWeek:
+      type: string
+      example: mon
+      enum:
+      - mon
+      - tue
+      - wed
+      - thu
+      - fri
+      - sat
+      - sun      
+    Timezone:
+      type: string
+      example: Africa/Johannesburg
+      description: The format is taken from IANA Timezone Database names.
+      pattern: '^[a-zA-Z0-9_]{1,14}/[a-zA-Z0-9_]{1,14}(/[a-zA-Z0-9_]+)?'
+    Event:
+      type: object
+      required: [id, title, eventTz, slotDuration, timeRanges]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          example: "Catch up call"
+        eventTz:
+          $ref: '#/components/schemas/Timezone'
+        slotDuration:
+          type: integer
+          enum:
+          - 15
+          - 20
+          - 30
+          - 60
+          example: 30
+          description: In minutes. timeRanges cannot be smaller than this number, adding them will result in a 400 response.
+        timeRanges:
+          type: array
+          minLength: 1
+          items:
+            type: object
+            properties:
+              dayOfWeek:
+                $ref: '#/components/schemas/DayOfWeek'
+              startTime:
+                type: string
+                format: time
+                example: '18:00'
+              endTime:
+                type: string
+                format: time
+                example: '19:00'
