@@ -5,6 +5,7 @@ export default class Time {
 
   constructor(time: TimeTypes) {
     if(time instanceof Time) {
+      // TODO: Josh
       this.minutes = time.minutes
     } else if(typeof time == 'number') {
       this.minutes = time
@@ -26,6 +27,14 @@ export default class Time {
 
   get isAm() {
     return (this.minutes % (24*60)) < 12*60 
+  }
+
+  get min(){
+    return this.minutes % 60
+  }
+
+  get hours() {
+    return Math.floor(this.minutes / 60)
   }
 
   get pretty() {

@@ -1,12 +1,12 @@
-import {useState} from 'react'
+import {useState, useCallback} from 'react'
 import Times from './Times'
 import Calendar from './Calendar'
-import {Button, Input} from './UI'
+import {Button, Input, Link} from './UI'
 import { format, parse } from 'date-fns'
 import Time from './Time'
 import {Event} from './generated-og'
-import {useQuery} from 'react-query'
-import {EventsApi, Configuration} from './generated-og'
+import {useQuery, useMutation} from 'react-query'
+import {EventsApi, Configuration, ReservationsApi, Reservation} from './generated-og'
 const eventsApi = new EventsApi(new Configuration({basePath: '/api'}))
 
 // const exampleEvent: Event = {
@@ -36,6 +36,8 @@ const daysOfWeek = [
   'sat'
 ]
 
+const resApi = new ReservationsApi(new Configuration({ basePath: '/api'}))
+
 function timesForDate(date: Date, event: Event): Time[] {
 
   const daySlots = event.timeRanges.filter(r => {
@@ -63,6 +65,31 @@ export default function ReserveEvent() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
 
+  const {mutate: reserveEvent, isLoading: isReserving, data: resResponseData, isSuccess, isError: reserveIsError, error: reserveError } = useMutation(async () => {
+    if(!startDate || !startTime) {
+      console.error('Missing startDate or startTime')
+      throw new Error('Missing startDate or startTime')
+    }
+
+    const time = new Time(startTime)
+    const startDateTime = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
+    startDateTime.setHours(time.hours)
+    startDateTime.setMinutes(time.min)
+    const endDateTime = new Date(startDateTime)
+    endDateTime.setMinutes(startDateTime.getMinutes() + slotDuration)
+    const {data} = await resApi.reserveEvent({
+      email,
+      name: fullName,
+      eventId: 0,
+      id: 0,
+      localTz: 'a/b',
+      startDateTime: startDateTime.toISOString(),
+      endDateTime: endDateTime.toISOString(),
+    })
+
+    return data
+  })
+
   const {isLoading, data: event} = useQuery<Event>('event', async () => {
     const res = await eventsApi.getEventById(0)
     const {data} = res
@@ -75,8 +102,8 @@ export default function ReserveEvent() {
 	Loading...
       </div>
     )
-    
   }
+
 
   const {timeRanges, slotDuration, title} = event
 
@@ -89,6 +116,28 @@ export default function ReserveEvent() {
   }
 
   const selectedDateTime = startDate && startTime !== null
+
+  if(isSuccess) {
+    const {id} = resResponseData
+    return (
+      <div>
+	<p> Successfully reserved your slot! </p>
+	<Link to={`/reservations/${id}`}> View reservation </Link>
+      </div>
+    )
+  }
+
+  if(reserveIsError) {
+    const err: any = (reserveError as any)?.response.data 
+    return (
+      <div>
+	<h3>Error reserving</h3>
+	<p>{JSON.stringify(err, null, 2)}</p>
+      </div>
+    )
+  }
+
+
   return (
     <div>
       <div className="mt-4" >
@@ -116,7 +165,7 @@ export default function ReserveEvent() {
 	      <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full name"/>
 	      <div className="flex space-x-3" >
 		<Button onClick={cancel} className="flex-1" color='red'>Cancel</Button>
-		<Button className="flex-1" >Reserve</Button>
+		<Button disabled={isReserving} onClick={() => reserveEvent()} className="flex-1" >Reserve</Button>
 	      </div>
 	    </form>
 	  </div>

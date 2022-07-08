@@ -1,7 +1,12 @@
-import {Reservation, Event} from './generated-og'
 import {ClockIcon} from '@heroicons/react/outline'
 import {parse, format, differenceInMinutes} from 'date-fns'
+import {useQuery} from 'react-query'
+import {useParams} from 'react-router-dom'
+import {ReservationsApi, Reservation, Event, EventsApi, Configuration} from './generated-og'
 import {A} from './UI'
+
+const resApi = new ReservationsApi(new Configuration({ basePath: '/api'}))
+const eventsApi = new EventsApi(new Configuration({ basePath: '/api'}))
 
 const exampleReservation: Reservation = {
   name: 'Josh',
@@ -21,17 +26,57 @@ const exampleEvent: Event = {
 }
 
 export default function ViewReservation() {
-  const {eventId, name, email, startDateTime, endDateTime} = exampleReservation
-  const {title} = exampleEvent
+  const { id } = useParams()
+
+  const {isLoading, data: reservation, isError, error} = useQuery<Reservation|null>(['reservation', id], async ({queryKey}) => {
+    const resId = parseInt(queryKey[1] + '')
+    return resApi.getReservationsByID(resId).then(res => {
+      console.log("res", res)
+      return res.data
+    })
+  }, {retry: 2})
+
+  const {data: eventData, isLoading: eventIsLoading} = useQuery(['event', reservation?.eventId], async ({queryKey}) => {
+    const id = queryKey[1] as number
+    const {data} = await eventsApi.getEventById(id)
+    return data
+  }, {
+    enabled: typeof reservation?.eventId === 'number'
+  }) 
+
+  if(isLoading) {
+    return (
+      <div>Loading...</div>
+    )
+  }
+
+  if(isError) {
+    return (
+      <div>
+	{(error as any).message}
+      </div>
+    )
+  }
+
+  if(!reservation) {
+    return (
+      <div>
+	Unable to load reservation
+      </div>
+    )
+  }
+
+
+  const {name, email, startDateTime, endDateTime} = reservation
   const start = new Date(startDateTime)
   const end = new Date(endDateTime)
   const actualDuration = differenceInMinutes(end, start)
 
+
   return (
     <div className="mt-16 w-[600px] m-auto" >
-      <h1 className="text-xl" > {title} </h1>
+      <h1 className="text-xl" > {eventIsLoading ? 'Loading...' : (eventData?.title) ? eventData.title : '<Unknown>'} </h1>
       <div className="flex items-center space-x-5" >
-
 	<div>
 	  {format(start, 'do eeee MMM yyyy')}
 	</div>
