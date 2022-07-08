@@ -62,8 +62,8 @@ function timesForDate(date: Date, event: Event): Time[] {
 export default function ReserveEvent() {
   const [startDate, setStartDate] = useState<Date|null>(null)
   const [startTime, setStartTime] = useState<Time|null>(null) // minutes since midnight
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
+  const [fullName, setFullName] = useState('Bob Example')
+  const [email, setEmail] = useState('bob@example.com')
 
   const {mutate: reserveEvent, isLoading: isReserving, data: resResponseData, isSuccess, isError: reserveIsError, error: reserveError } = useMutation(async () => {
     if(!startDate || !startTime) {
@@ -105,7 +105,7 @@ export default function ReserveEvent() {
   }
 
 
-  const {timeRanges, slotDuration, title} = event
+  const {slotDuration, title} = event
 
   const duration = slotDuration  
   const eventTitle = title
@@ -142,34 +142,38 @@ export default function ReserveEvent() {
     <div>
       <div className="mt-4" >
 
-	<h2>{eventTitle}</h2>
+	<h2 className="text-xl" > {eventTitle} ({duration}min)</h2>
 
-	{!selectedDateTime ? (
-	  <div className="flex" >
-	    <div className="flex-1" >
-	      <Calendar dayEnabled={(d) => !!timesForDate(d, event).length} startDate={startDate} changeStartDate={setStartDate}/>
-	    </div>
-	    <div className="flex-1" >
-	      {startDate ? (
-		<Times setTime={setStartTime} times={timesForDate(startDate, event)} /> 
-	      ) : null}
-	    </div>
-	  </div>
-	) : (
+	<div className="mt-2" >
 
-	  <div>
-	    <h2 className="text-xl" > {eventTitle} ({duration}min)</h2>
-	    <h3 className="text-gray-600" >Confirm your slot for {startTime.pretty} to {new Time(startTime.minutes + duration).pretty} {format(startDate, 'eeee, do MMM yyyy')} </h3>
-	    <form onSubmit={(e) => e.preventDefault()}>
-	      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email"/>
-	      <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full name"/>
-	      <div className="flex space-x-3" >
-		<Button onClick={cancel} className="flex-1" color='red'>Cancel</Button>
-		<Button disabled={isReserving} onClick={() => reserveEvent()} className="flex-1" >Reserve</Button>
+	  {!selectedDateTime ? (
+	    <div className="flex" >
+	      <div className="flex-1" >
+		<Calendar dayEnabled={(d) => !!timesForDate(d, event).length} startDate={startDate} changeStartDate={setStartDate}/>
 	      </div>
-	    </form>
-	  </div>
-	)}
+	      <div className="flex-1" >
+		{startDate ? (
+		  <Times setTime={setStartTime} times={timesForDate(startDate, event)} /> 
+		) : null}
+	      </div>
+	    </div>
+	  ) : (
+
+	    <div>
+	      <h3 className="text-gray-600" >Confirm your slot for {startTime.pretty} to {new Time(startTime.minutes + duration).pretty} {format(startDate, 'eeee, do MMM yyyy')} </h3>
+	      <form className="mt-2"  onSubmit={(e) => e.preventDefault()}>
+		<Input className=""  type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email"/>
+		<Input className="ml-2" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full name"/>
+		<div className="flex mt-2 space-x-3" >
+		  <Button onClick={cancel} className="flex-1" color='red'>Cancel</Button>
+		  <Button disabled={isReserving} onClick={() => reserveEvent()} className="flex-1" >Reserve</Button>
+		</div>
+	      </form>
+	    </div>
+	  )}
+
+
+	</div>
       </div>
 
       <pre>

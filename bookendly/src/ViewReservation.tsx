@@ -93,7 +93,7 @@ export default function ViewReservation() {
       </div>
 
       <div className=''>
-	{name} {'<'} <A className="text-blue-600 " href={'mailto:' + email}>{email}</A> {'>'}
+	{name} -- <A className="text-blue-600 " href={'mailto:' + email}>{email}</A> 
       </div>
 
     </div>

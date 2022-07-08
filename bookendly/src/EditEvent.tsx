@@ -109,14 +109,14 @@ export default function EditEvent() {
  }
 
   return (
-    <div className="border-2 border-gray-400 rounded-md p-3" >
-      <h2 className="text-2xl" >Edit Event</h2>
+    <div className="" >
+      <h2 className="text-xl" >Edit Event</h2>
       <section className="" >
 	<h3 className="text-gray-600" >Event in {timezone} timezone</h3>
 	<div>
 	  <label htmlFor="eventName">Name of event</label>
-	  <input className="border-gray-600 border rounded-md px-2.5 py-1.5" placeholder="Meeting for coffee" name="eventName" type="text" onChange={(e: any) => {setEventName(e.target.value)}} value={eventName} />
-	  <Dropdown render={(v) => `${v} min`} values={[15, 30, 60]} value={eventLength} onChange={setEventLength}/>
+	  <input className="ml-2 border-gray-600 border rounded-md px-2.5 py-1.5" placeholder="Meeting for coffee" name="eventName" type="text" onChange={(e: any) => {setEventName(e.target.value)}} value={eventName} />
+	  <Dropdown className="ml-2"  render={(v) => `${v} min`} values={[15, 30, 60]} value={eventLength} onChange={setEventLength}/>
 	</div>
 
       </section>
@@ -151,23 +151,27 @@ function DaySlot({dayIndex, slots, onCheckDay, onAddSlot, onDeleteSlot, onUpdate
   const hasSlots = Boolean(slots.length)
 
   return (
-    <div>
-      <input type="checkbox" checked={hasSlots} onChange={() => onCheckDay(dayIndex)}/>
-      {daysOfWeek[dayIndex] || 'Unknown'} 
-      <button><PlusIcon onClick={() => onAddSlot(dayIndex)} className="text-gray-600 hover:text-gray-500 w-5 h-5" /></button>
-      {slots.map((slot, slotIndex) => {
-	const {endTime, startTime} = slot
+    <div className="mt-2" >
+      <div className="flex items-center space-x-2" >
+	<input className="mx-2"  type="checkbox" checked={hasSlots} onChange={() => onCheckDay(dayIndex)}/>
+	{daysOfWeek[dayIndex] || 'Unknown'} 
+	<button><PlusIcon onClick={() => onAddSlot(dayIndex)} className="text-gray-100 hover:bg-blue-500 w-4 h-4 bg-blue-600 rounded-full" /></button>
+	{hasSlots ? null : (
+	  <span className="text-gray-500 ml-4" >Unavailable</span>
+	)}
+      </div>
+      <div className="mt-2 pl-8" >
+	{slots.map((slot, slotIndex) => {
+	  const {endTime, startTime} = slot
 
-	return (
-	  <div key={slotIndex}>
-	    <TimeDropdown {...{startTime, endTime, setTime: (s,e) => onUpdateTimeSlot(dayIndex, slotIndex, {startTime: s, endTime: e})}} />
-	    <button><TrashIcon onClick={() => onDeleteSlot(dayIndex, slotIndex)} className="text-gray-600 hover:text-gray-500 w-5 h-5" /></button>
-	  </div>
-	)
-      })}
-      {hasSlots ? null : (
-	<span className="text-gray-500 ml-4" >Unavailable</span>
-      )}
+	  return (
+	    <div key={slotIndex} className="flex items-center space-x-2 mt-1" >
+	      <TimeDropdown {...{startTime, endTime, setTime: (s,e) => onUpdateTimeSlot(dayIndex, slotIndex, {startTime: s, endTime: e})}} />
+	      <button><TrashIcon onClick={() => onDeleteSlot(dayIndex, slotIndex)} className="text-blue-600 hover:text-blue-500 w-5 h-5" /></button>
+	    </div>
+	  )
+	})}
+      </div>
     </div>
   )
   
