@@ -1,0 +1,30 @@
+# 
+GET http://localhost:8080/events/0
+
+# 
+GET http://localhost:8080/events
+
+#
+PUT http://localhost:8080/events/0
+content-type: application/json
+
+{
+"title": "My call",
+"slotDuration": 15,
+"timeRanges": [
+{
+"dayOfWeek": "mon",
+"startTime": "10:00",
+"endTime": "11:00"
+
+}
+],
+"eventTz": "Africa/Johannesburg"
+
+}
+
+#
+GET http://localhost:8080/reservations
+
+#
+POST 

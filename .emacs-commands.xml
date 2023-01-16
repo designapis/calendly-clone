@@ -2,7 +2,7 @@
   <command title="Start SPA" dir="." >
 
     <cmd>
-      nix-shell --run "cd bookendly &amp;&amp; yarn run start"
+      nix-shell --run "cd browser &amp;&amp; yarn run start"
     </cmd>
 
   </command>
@@ -10,7 +10,7 @@
   <command title="Start Server" dir="." >
 
     <cmd>
-      nix-shell --run "cd attempt0 &amp;&amp; yarn run start"
+      nix-shell --run "cd server &amp;&amp; yarn run start"
     </cmd>
 
   </command>
